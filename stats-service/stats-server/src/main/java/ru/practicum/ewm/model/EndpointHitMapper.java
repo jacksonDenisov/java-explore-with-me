@@ -7,7 +7,7 @@ import ru.practicum.ewm.dto.EndpointHitDto;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EndpointHitMapper {
 
-    public static EndpointHit toEndpointHit (EndpointHitDto endpointHitDto){
+    public static EndpointHit toEndpointHit(EndpointHitDto endpointHitDto) {
         EndpointHit endpointHit = new EndpointHit();
         endpointHit.setApp(endpointHitDto.getApp());
         endpointHit.setUri(endpointHitDto.getUri());
@@ -16,7 +16,7 @@ public class EndpointHitMapper {
         return endpointHit;
     }
 
-    public static EndpointHitDto toEndpointHitDto (EndpointHit endpointHit){
+    public static EndpointHitDto toEndpointHitDto(EndpointHit endpointHit) {
         EndpointHitDto endpointHitDto = new EndpointHitDto();
         endpointHitDto.setId(endpointHit.getId());
         endpointHitDto.setApp(endpointHit.getApp());
