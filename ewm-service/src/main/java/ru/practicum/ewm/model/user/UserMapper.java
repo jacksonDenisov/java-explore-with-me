@@ -16,16 +16,16 @@ public class UserMapper {
         return user;
     }
 
-    public static UserDtoFull toUserDtoFull(User user) {
-        UserDtoFull userDtoFull = new UserDtoFull();
+    public static UserDto toUserDtoFull(User user) {
+        UserDto userDtoFull = new UserDto();
         userDtoFull.setId(user.getId());
         userDtoFull.setName(user.getName());
         userDtoFull.setEmail(user.getEmail());
         return userDtoFull;
     }
 
-    public static List<UserDtoFull> toUserDtoFull(List<User> users) {
-        List<UserDtoFull> usersDtoFull = new ArrayList<>();
+    public static List<UserDto> toUserDtoFull(List<User> users) {
+        List<UserDto> usersDtoFull = new ArrayList<>();
         for (User user : users) {
             usersDtoFull.add(toUserDtoFull(user));
         }

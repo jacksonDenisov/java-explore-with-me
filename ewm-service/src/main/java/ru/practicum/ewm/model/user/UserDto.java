@@ -3,7 +3,7 @@ package ru.practicum.ewm.model.user;
 import lombok.Data;
 
 @Data
-public class UserDtoFull {
+public class UserDto {
 
     private Long id;
 

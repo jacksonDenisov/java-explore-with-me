@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.DataBaseConflictException;
 import ru.practicum.ewm.exceptions.NotFoundException;
 import ru.practicum.ewm.model.user.User;
-import ru.practicum.ewm.model.user.UserDtoFull;
+import ru.practicum.ewm.model.user.UserDto;
 import ru.practicum.ewm.model.user.UserDtoNew;
 import ru.practicum.ewm.model.user.UserMapper;
 import ru.practicum.ewm.storage.user.UserRepository;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDtoFull create(UserDtoNew userDtoNew) {
+    public UserDto create(UserDtoNew userDtoNew) {
         try {
             User user = userRepository.save(UserMapper.toUser(userDtoNew));
             return UserMapper.toUserDtoFull(user);
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDtoFull> findUsers(List<Long> ids, Pageable pageable) {
+    public List<UserDto> findUsers(List<Long> ids, Pageable pageable) {
         Page<User> usersPage = userRepository.findAllByIdIn(ids, pageable);
         return UserMapper.toUserDtoFull(usersPage.toList());
     }
