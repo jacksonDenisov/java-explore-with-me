@@ -9,9 +9,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.model.category.CategoryDtoFull;
 import ru.practicum.ewm.model.category.CategoryDtoNew;
+import ru.practicum.ewm.model.event.EventDtoFull;
+import ru.practicum.ewm.model.event.EventState;
 import ru.practicum.ewm.model.user.UserDto;
 import ru.practicum.ewm.model.user.UserDtoNew;
 import ru.practicum.ewm.service.category.CategoryService;
+import ru.practicum.ewm.service.event.EventService;
 import ru.practicum.ewm.service.user.UserService;
 
 import javax.validation.Valid;
@@ -28,6 +31,8 @@ public class AdminController {
 
     private final UserService userService;
     private final CategoryService categoryService;
+
+    private final EventService eventService;
 
 
     @PostMapping("/users")
@@ -74,5 +79,20 @@ public class AdminController {
                                      @PathVariable @Positive Long catId) {
         log.info("Получен запрос на обновление категории с id {}", catId);
         return categoryService.update(categoryDtoNew, catId);
+    }
+
+    @GetMapping("/events")
+    protected List<EventDtoFull> getEventsFullInfo(@RequestParam(required = false) List<Long> users,
+                                                   @RequestParam(required = false) List<EventState> states,
+                                                   @RequestParam(required = false) List<Long> categories,
+                                                   @RequestParam(required = false) String rangeStart,
+                                                   @RequestParam(required = false) String rangeEnd,
+                                                   @RequestParam(value = "from", defaultValue = "0")
+                                                   @PositiveOrZero int from,
+                                                   @RequestParam(value = "size", defaultValue = "10")
+                                                   @PositiveOrZero int size) {
+        log.info("Получен запрос на поиск событий");
+        Pageable pageable = PageRequest.of(from / size, size);
+        return eventService.getEventsFullInfo(users, states, categories, rangeStart, rangeEnd, pageable);
     }
 }

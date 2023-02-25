@@ -1,8 +1,12 @@
 package ru.practicum.ewm.service.event;
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.BusinessLogicConflictException;
@@ -17,7 +21,10 @@ import ru.practicum.ewm.storage.event.EventRepository;
 import ru.practicum.ewm.storage.location.LocationRepository;
 import ru.practicum.ewm.storage.user.UserRepository;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -165,5 +172,44 @@ public class EventServiceImpl implements EventService {
         }
         Event updatedEvent = eventRepository.save(event);
         return EventMapper.toEventDtoFull(updatedEvent);
+    }
+
+    @Override
+    @Transactional
+    public List<EventDtoFull> getEventsFullInfo(List<Long> users, List<EventState> states, List<Long> categories,
+                                                String rangeStart, String rangeEnd, Pageable pageable) {
+        QEvent qEvent = QEvent.event;
+        List<BooleanExpression> predicates = new ArrayList<>();
+        if (users != null) {
+            BooleanExpression byInitiatorId = qEvent.initiator.id.in(users);
+            predicates.add(byInitiatorId);
+        }
+        if (states != null) {
+            BooleanExpression byStates = qEvent.state.in(states);
+            predicates.add(byStates);
+
+        }
+        if (categories != null) {
+            BooleanExpression byCategories = qEvent.category.id.in(categories);
+            predicates.add(byCategories);
+        }
+        if (rangeStart != null) {
+            LocalDateTime start = LocalDateTime.parse(URLDecoder.decode(rangeStart, StandardCharsets.UTF_8),
+                    DateTimeFormatter.ofPattern(("yyyy-MM-dd HH:mm:ss")));
+            BooleanExpression byRangeStart = qEvent.eventDate.after(start);
+            predicates.add(byRangeStart);
+        }
+        if (rangeEnd != null) {
+            LocalDateTime end = LocalDateTime.parse(URLDecoder.decode(rangeEnd, StandardCharsets.UTF_8),
+                    DateTimeFormatter.ofPattern(("yyyy-MM-dd HH:mm:ss")));
+            BooleanExpression byRangeEnd = qEvent.eventDate.before(end);
+            predicates.add(byRangeEnd);
+        }
+        BooleanExpression finalPredicate = Expressions.asBoolean(true).isTrue();
+        for (BooleanExpression predicate : predicates) {
+            finalPredicate = finalPredicate.and(predicate);
+        }
+        Page<Event> eventPage = eventRepository.findAll(finalPredicate, pageable);
+        return EventMapper.toEventDtoFull(eventPage.toList());
     }
 }

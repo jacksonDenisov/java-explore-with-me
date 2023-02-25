@@ -18,7 +18,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/events")
+@RequestMapping("/users/{userId}")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
@@ -26,7 +26,7 @@ public class PrivateController {
 
     private final EventService eventService;
 
-    @PostMapping
+    @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)
     protected EventDtoFull createEvent(@PathVariable @Positive Long userId,
                                        @RequestBody @Valid EventDtoNew eventDtoNew) {
@@ -34,14 +34,14 @@ public class PrivateController {
         return eventService.create(eventDtoNew, userId);
     }
 
-    @GetMapping("/{eventId}")
+    @GetMapping("/events/{eventId}")
     protected EventDtoFull findEventByIdForInitiator(@PathVariable @Positive Long userId,
                                                      @PathVariable @Positive Long eventId) {
         log.info("Получен запрос на получение события с id {} от пользователя с id {}", eventId, userId);
         return eventService.findEventByIdForInitiator(userId, eventId);
     }
 
-    @GetMapping
+    @GetMapping("/events")
     protected List<EventDtoFull> findAllEventsForInitiator(@PathVariable @Positive Long userId,
                                                            @RequestParam(required = false, defaultValue = "0")
                                                            @PositiveOrZero int from,
@@ -52,7 +52,7 @@ public class PrivateController {
         return eventService.findAllEventsForInitiator(userId, pageable);
     }
 
-    @PatchMapping("/{eventId}")
+    @PatchMapping("/events/{eventId}")
     protected EventDtoFull updateEventByIdByInitiator(@PathVariable @Positive Long userId,
                                                       @PathVariable @Positive Long eventId,
                                                       @RequestBody @Valid EventDtoUpdate eventDtoUpdate) {
