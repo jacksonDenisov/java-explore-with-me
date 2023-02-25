@@ -3,6 +3,8 @@ package ru.practicum.ewm.service.category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.DataBaseConflictException;
@@ -15,6 +17,7 @@ import ru.practicum.ewm.storage.category.CategoryRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -59,12 +62,32 @@ public class CategoryServiceImpl implements CategoryService {
                 return CategoryMapper.toCategoryDtoFull(categoryChanged);
             } else {
                 throw new DataBaseConflictException("Не удалось обновить новую категорию",
-                        "Нарушение целостности данных",
-                        new ArrayList<>(Collections.singletonList("Указанное имя категории уже задействовано")));
+                        "Нарушение целостности данных - указанное имя категории уже задействовано",
+                        new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
             }
         } catch (NoSuchElementException e) {
             throw new NotFoundException("Не удалось найти категорию",
                     "Вероятно, указан несуществующий id",
+                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<CategoryDtoFull> findAll(Pageable pageable) {
+        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+        return CategoryMapper.toCategoryDtoFull(categoryPage.toList());
+    }
+
+    @Override
+    @Transactional
+    public CategoryDtoFull findById(Long id) {
+        try {
+            Category category = categoryRepository.findById(id).get();
+            return CategoryMapper.toCategoryDtoFull(category);
+        } catch (NoSuchElementException e) {
+            throw new NotFoundException("Не удалось найти категорию",
+                    "Категории с запрошенным id в системе не существует",
                     new ArrayList<>(Collections.singletonList(e.getMessage())));
         }
     }

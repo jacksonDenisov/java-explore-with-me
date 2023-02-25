@@ -7,17 +7,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.ewm.Controller.AdminController;
+import ru.practicum.ewm.Controller.PrivateController;
+import ru.practicum.ewm.Controller.PublicController;
 
+import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-@RestControllerAdvice(assignableTypes = {AdminController.class})
+@RestControllerAdvice(assignableTypes = {AdminController.class, PublicController.class, PrivateController.class})
 public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleEmptyResultDataAccessException(final NotFoundException e) {
         return new ApiError(e.getErrors(), e.getMessage(), e.getReason(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleBusinessLogicConflictException(final BusinessLogicConflictException e) {
+        return new ApiError(e.getErrors(), e.getMessage(), e.getReason(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler
@@ -38,6 +47,15 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e) {
+        return new ApiError(new ArrayList<>(Collections.singletonList(e.getMessage())),
+                "Не удалось обработать запрос",
+                "Некорректное заполнение параметров запроса",
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleConstraintViolationException(final ConstraintViolationException e) {
         return new ApiError(new ArrayList<>(Collections.singletonList(e.getMessage())),
                 "Не удалось обработать запрос",
                 "Некорректное заполнение параметров запроса",

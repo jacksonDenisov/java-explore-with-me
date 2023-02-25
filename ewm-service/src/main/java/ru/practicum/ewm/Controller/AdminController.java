@@ -15,6 +15,8 @@ import ru.practicum.ewm.service.category.CategoryService;
 import ru.practicum.ewm.service.user.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -37,18 +39,20 @@ public class AdminController {
 
     @DeleteMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    protected void deleteUser(@PathVariable Long userId) {
+    protected void deleteUser(@PathVariable @Positive Long userId) {
         log.info("Получен запрос на удаление пользователя с id {}", userId);
         userService.delete(userId);
     }
 
     @GetMapping("/users")
     protected List<UserDto> findUsers(@RequestParam List<Long> ids,
-                                      @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                      @RequestParam(name = "size", required = false, defaultValue = "20") int size) {
+                                      @RequestParam(name = "from", required = false, defaultValue = "0")
+                                      @PositiveOrZero int from,
+                                      @RequestParam(name = "size", required = false, defaultValue = "10")
+                                      @PositiveOrZero int size) {
         log.info("Получен запрос на поиск пользователей с id: {}. from = {}, size = {}", ids, from, size);
         Pageable pageable = PageRequest.of(from / size, size);
-        return userService.findUsers(ids, pageable);
+        return userService.findAllByIds(ids, pageable);
     }
 
     @PostMapping("/categories")
@@ -60,13 +64,14 @@ public class AdminController {
 
     @DeleteMapping("/categories/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    protected void deleteCategory(@PathVariable Long catId) {
+    protected void deleteCategory(@PathVariable @Positive Long catId) {
         log.info("Получен запрос на удаление категории с id {}", catId);
         categoryService.delete(catId);
     }
 
     @PatchMapping("/categories/{catId}")
-    protected CategoryDtoFull update(@RequestBody @Valid CategoryDtoNew categoryDtoNew, @PathVariable Long catId) {
+    protected CategoryDtoFull update(@RequestBody @Valid CategoryDtoNew categoryDtoNew,
+                                     @PathVariable @Positive Long catId) {
         log.info("Получен запрос на обновление категории с id {}", catId);
         return categoryService.update(categoryDtoNew, catId);
     }
