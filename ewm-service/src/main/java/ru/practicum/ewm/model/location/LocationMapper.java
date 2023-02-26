@@ -3,7 +3,6 @@ package ru.practicum.ewm.model.location;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.ewm.model.event.EventDtoNew;
-import ru.practicum.ewm.model.event.EventDtoUpdate;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LocationMapper {

@@ -14,7 +14,7 @@ import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 
 @Data
-public class EventDtoUpdate {
+public class EventDtoUpdateByUser {
 
     @Nullable
     @Size(min = 20, max = 2000)

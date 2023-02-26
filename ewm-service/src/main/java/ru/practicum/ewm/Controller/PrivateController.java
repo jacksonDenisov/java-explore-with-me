@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.model.event.EventDtoFull;
 import ru.practicum.ewm.model.event.EventDtoNew;
-import ru.practicum.ewm.model.event.EventDtoUpdate;
+import ru.practicum.ewm.model.event.EventDtoUpdateByUser;
 import ru.practicum.ewm.service.event.EventService;
 
 import javax.validation.Valid;
@@ -55,8 +55,8 @@ public class PrivateController {
     @PatchMapping("/events/{eventId}")
     protected EventDtoFull updateEventByIdByInitiator(@PathVariable @Positive Long userId,
                                                       @PathVariable @Positive Long eventId,
-                                                      @RequestBody @Valid EventDtoUpdate eventDtoUpdate) {
+                                                      @RequestBody @Valid EventDtoUpdateByUser eventDtoUpdateByUser) {
         log.info("Получен запрос на обновление события с id {} от пользователя с id {}", eventId, userId);
-        return eventService.updateEventByIdByInitiator(eventDtoUpdate, userId, eventId);
+        return eventService.updateEventByIdByInitiator(eventDtoUpdateByUser, userId, eventId);
     }
 }

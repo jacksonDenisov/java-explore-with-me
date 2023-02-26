@@ -1,5 +1,6 @@
 package ru.practicum.ewm.exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -60,5 +61,14 @@ public class ErrorHandler {
                 "Не удалось обработать запрос",
                 "Некорректное заполнение параметров запроса",
                 HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+        return new ApiError(new ArrayList<>(Collections.singletonList(e.getMessage())),
+                "Нарушение целостности данных",
+                e.getCause().getCause().getMessage(),
+                HttpStatus.CONFLICT);
     }
 }

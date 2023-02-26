@@ -1,12 +1,11 @@
 package ru.practicum.ewm.service.event;
 
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.binding.QuerydslPredicateBuilder;
+import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.BusinessLogicConflictException;
@@ -99,7 +98,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventDtoFull updateEventByIdByInitiator(EventDtoUpdate eventDtoUpdate, Long userId, Long eventId) {
+    public EventDtoFull updateEventByIdByInitiator(EventDtoUpdateByUser eventDtoUpdateByUser, Long userId, Long eventId) {
         Event event;
         try {
             event = eventRepository.findById(eventId).get();
@@ -113,12 +112,12 @@ public class EventServiceImpl implements EventService {
                     "События с запрошенным id в системе не существует",
                     new ArrayList<>(Collections.singletonList(e.getMessage())));
         }
-        if (eventDtoUpdate.getAnnotation() != null) {
-            event.setAnnotation(eventDtoUpdate.getAnnotation());
+        if (eventDtoUpdateByUser.getAnnotation() != null) {
+            event.setAnnotation(eventDtoUpdateByUser.getAnnotation());
         }
-        if (eventDtoUpdate.getCategory() != null) {
+        if (eventDtoUpdateByUser.getCategory() != null) {
             try {
-                Category category = categoryRepository.findById(eventDtoUpdate.getCategory()).get();
+                Category category = categoryRepository.findById(eventDtoUpdateByUser.getCategory()).get();
                 event.setCategory(category);
             } catch (NoSuchElementException e) {
                 throw new NotFoundException("Не удалось найти категорию",
@@ -126,40 +125,39 @@ public class EventServiceImpl implements EventService {
                         new ArrayList<>(Collections.singletonList(e.getMessage())));
             }
         }
-        if (eventDtoUpdate.getDescription() != null) {
-            event.setDescription(eventDtoUpdate.getDescription());
+        if (eventDtoUpdateByUser.getDescription() != null) {
+            event.setDescription(eventDtoUpdateByUser.getDescription());
         }
-        if (eventDtoUpdate.getEventDate() != null) {
-            if (eventDtoUpdate.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
+        if (eventDtoUpdateByUser.getEventDate() != null) {
+            if (eventDtoUpdateByUser.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
                 throw new BusinessLogicConflictException("Не удалось обновить событие",
                         "Дата и время, на которые намечено событие не может быть раньше, чем через два часа от текущего момента",
                         new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
             }
-            event.setEventDate(eventDtoUpdate.getEventDate());
+            event.setEventDate(eventDtoUpdateByUser.getEventDate());
         }
-        if (eventDtoUpdate.getLocation() != null) {
+        if (eventDtoUpdateByUser.getLocation() != null) {
             Location location = locationRepository.findById(event.getLocation().getId()).get();
-            location.setLon(eventDtoUpdate.getLocation().getLon());
-            location.setLat(eventDtoUpdate.getLocation().getLat());
+            location.setLon(eventDtoUpdateByUser.getLocation().getLon());
+            location.setLat(eventDtoUpdateByUser.getLocation().getLat());
             locationRepository.save(location);
             event.setLocation(location);
         }
-        if (eventDtoUpdate.getPaid() != null) {
-            event.setPaid(eventDtoUpdate.getPaid());
+        if (eventDtoUpdateByUser.getPaid() != null) {
+            event.setPaid(eventDtoUpdateByUser.getPaid());
         }
-        if (eventDtoUpdate.getParticipantLimit() != null) {
-            event.setParticipantLimit(eventDtoUpdate.getParticipantLimit());
+        if (eventDtoUpdateByUser.getParticipantLimit() != null) {
+            event.setParticipantLimit(eventDtoUpdateByUser.getParticipantLimit());
         }
-        if (eventDtoUpdate.getRequestModeration() != null) {
-            event.setRequestModeration(eventDtoUpdate.getRequestModeration());
+        if (eventDtoUpdateByUser.getRequestModeration() != null) {
+            event.setRequestModeration(eventDtoUpdateByUser.getRequestModeration());
         }
-        if (eventDtoUpdate.getStateAction() != null) {
+        if (eventDtoUpdateByUser.getStateAction() != null) {
             if (event.getState() == EventState.CANCELED
-                    && eventDtoUpdate.getStateAction() == EventStateAction.SEND_TO_REVIEW) {
+                    && eventDtoUpdateByUser.getStateAction() == EventStateAction.SEND_TO_REVIEW) {
                 event.setState(EventState.PENDING);
-            }
-            if (event.getState() == EventState.PENDING
-                    && eventDtoUpdate.getStateAction() == EventStateAction.CANCEL_REVIEW) {
+            } else if (event.getState() == EventState.PENDING
+                    && eventDtoUpdateByUser.getStateAction() == EventStateAction.CANCEL_REVIEW) {
                 event.setState(EventState.CANCELED);
             } else {
                 throw new BusinessLogicConflictException("Не удалось обновить статус события",
@@ -167,8 +165,8 @@ public class EventServiceImpl implements EventService {
                         new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
             }
         }
-        if (eventDtoUpdate.getTitle() != null) {
-            event.setTitle(eventDtoUpdate.getTitle());
+        if (eventDtoUpdateByUser.getTitle() != null) {
+            event.setTitle(eventDtoUpdateByUser.getTitle());
         }
         Event updatedEvent = eventRepository.save(event);
         return EventMapper.toEventDtoFull(updatedEvent);
@@ -211,5 +209,150 @@ public class EventServiceImpl implements EventService {
         }
         Page<Event> eventPage = eventRepository.findAll(finalPredicate, pageable);
         return EventMapper.toEventDtoFull(eventPage.toList());
+    }
+
+    @Override
+    @Transactional
+    public EventDtoFull updateEventByIdByAdmin(EventDtoUpdateByAdmin eventDtoUpdateByAdmin, Long eventId) {
+        Event event;
+        try {
+            event = eventRepository.findById(eventId).get();
+        } catch (NoSuchElementException e) {
+            throw new NotFoundException("Не удалось найти событие",
+                    "События с запрошенным id в системе не существует",
+                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+        }
+        if (eventDtoUpdateByAdmin.getAnnotation() != null) {
+            event.setAnnotation(eventDtoUpdateByAdmin.getAnnotation());
+        }
+        if (eventDtoUpdateByAdmin.getCategory() != null) {
+            try {
+                Category category = categoryRepository.findById(eventDtoUpdateByAdmin.getCategory()).get();
+                event.setCategory(category);
+            } catch (NoSuchElementException e) {
+                throw new NotFoundException("Не удалось найти категорию",
+                        "Категория с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList(e.getMessage())));
+            }
+        }
+        if (eventDtoUpdateByAdmin.getDescription() != null) {
+            event.setDescription(eventDtoUpdateByAdmin.getDescription());
+        }
+        if (eventDtoUpdateByAdmin.getEventDate() != null && event.getCreatedOn() != null) {
+            if (eventDtoUpdateByAdmin.getEventDate().isBefore(event.getCreatedOn().plusHours(1L))) {
+                throw new BusinessLogicConflictException("Не удалось обновить событие",
+                        "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации",
+                        new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
+            }
+            event.setEventDate(eventDtoUpdateByAdmin.getEventDate());
+        }
+        if (eventDtoUpdateByAdmin.getLocation() != null) {
+            Location location = locationRepository.findById(event.getLocation().getId()).get();
+            location.setLon(eventDtoUpdateByAdmin.getLocation().getLon());
+            location.setLat(eventDtoUpdateByAdmin.getLocation().getLat());
+            locationRepository.save(location);
+            event.setLocation(location);
+        }
+        if (eventDtoUpdateByAdmin.getPaid() != null) {
+            event.setPaid(eventDtoUpdateByAdmin.getPaid());
+        }
+        if (eventDtoUpdateByAdmin.getParticipantLimit() != null) {
+            event.setParticipantLimit(eventDtoUpdateByAdmin.getParticipantLimit());
+        }
+        if (eventDtoUpdateByAdmin.getRequestModeration() != null) {
+            event.setRequestModeration(eventDtoUpdateByAdmin.getRequestModeration());
+        }
+        if (eventDtoUpdateByAdmin.getStateAction() != null) {
+            if (event.getState() == EventState.PENDING
+                    && eventDtoUpdateByAdmin.getStateAction() == EventStateAction.PUBLISH_EVENT) {
+                event.setState(EventState.PUBLISHED);
+            } else if (event.getState() == EventState.PENDING
+                    && eventDtoUpdateByAdmin.getStateAction() == EventStateAction.REJECT_EVENT) {
+                event.setState(EventState.CANCELED);
+            } else {
+                throw new BusinessLogicConflictException("Не удалось обновить статус события",
+                        "Событие можно публиковать, только если оно в состоянии ожидания публикации. " +
+                                "Событие можно отклонить, только если оно еще не опубликовано",
+                        new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
+            }
+        }
+        if (eventDtoUpdateByAdmin.getTitle() != null) {
+            event.setTitle(eventDtoUpdateByAdmin.getTitle());
+        }
+        Event updatedEvent = eventRepository.save(event);
+        return EventMapper.toEventDtoFull(updatedEvent);
+    }
+
+    @Override
+    @Transactional
+    public List<EventDtoShort> findAllPublicEvents(String text, List<Long> categories, Boolean paid,
+                                                   String rangeStart, String rangeEnd, Boolean onlyAvailable,
+                                                   EventSortOption sort, Pageable pageable) {
+        QEvent qEvent = QEvent.event;
+        List<BooleanExpression> predicates = new ArrayList<>();
+
+        BooleanExpression byPublishedState = qEvent.state.eq(EventState.PUBLISHED);
+        predicates.add(byPublishedState);
+
+        if (text != null) {
+            BooleanExpression byTextInAnnotationOrDescription = qEvent.annotation.containsIgnoreCase(text)
+                    .or(qEvent.description.containsIgnoreCase(text));
+            predicates.add(byTextInAnnotationOrDescription);
+        }
+        if (categories != null) {
+            BooleanExpression byCategories = qEvent.category.id.in(categories);
+            predicates.add(byCategories);
+        }
+        if (paid != null) {
+            BooleanExpression byPaid = qEvent.paid.eq(paid);
+            predicates.add(byPaid);
+        }
+        if (rangeStart != null && rangeEnd != null) {
+            LocalDateTime start = LocalDateTime.parse(URLDecoder.decode(rangeStart, StandardCharsets.UTF_8),
+                    DateTimeFormatter.ofPattern(("yyyy-MM-dd HH:mm:ss")));
+            BooleanExpression byRangeStart = qEvent.eventDate.after(start);
+            predicates.add(byRangeStart);
+
+            LocalDateTime end = LocalDateTime.parse(URLDecoder.decode(rangeEnd, StandardCharsets.UTF_8),
+                    DateTimeFormatter.ofPattern(("yyyy-MM-dd HH:mm:ss")));
+            BooleanExpression byRangeEnd = qEvent.eventDate.before(end);
+            predicates.add(byRangeEnd);
+        } else {
+            BooleanExpression defaultTimePredicate = qEvent.eventDate.after(LocalDateTime.now());
+            predicates.add(defaultTimePredicate);
+
+        }
+        if (onlyAvailable) {
+            BooleanExpression byOnlyAvailable = qEvent.participantLimit.gt(qEvent.confirmedRequests);
+            predicates.add(byOnlyAvailable);
+        }
+
+        BooleanExpression finalPredicate = Expressions.asBoolean(true).isTrue();
+        for (BooleanExpression predicate : predicates) {
+            finalPredicate = finalPredicate.and(predicate);
+        }
+
+        Page<Event> eventPage = eventRepository.findAll(finalPredicate, pageable);
+        System.out.println("test");
+        return EventMapper.toEventDtoShort(eventPage.toList());
+    }
+
+    @Override
+    @Transactional
+    public EventDtoFull findPublicEventById(Long id) {
+        Event event;
+        try {
+            event = eventRepository.findById(id).get();
+            if (event.getState() != EventState.PUBLISHED) {
+                throw new NoSuchElementException("Данное событие недоступно");
+            }
+        } catch (NoSuchElementException e) {
+            throw new NotFoundException("Не удалось найти событие",
+                    "События с запрошенным id в системе не существует или оно недоступно",
+                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+        }
+        event.setViews(event.getViews() + 1);
+        eventRepository.save(event);
+        return EventMapper.toEventDtoFull(event);
     }
 }

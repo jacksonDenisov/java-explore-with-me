@@ -9,11 +9,15 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.model.category.CategoryDtoFull;
 import ru.practicum.ewm.model.category.CategoryDtoNew;
+import ru.practicum.ewm.model.compilation.CompilationDtoFull;
+import ru.practicum.ewm.model.compilation.CompilationDtoNew;
 import ru.practicum.ewm.model.event.EventDtoFull;
+import ru.practicum.ewm.model.event.EventDtoUpdateByAdmin;
 import ru.practicum.ewm.model.event.EventState;
 import ru.practicum.ewm.model.user.UserDto;
 import ru.practicum.ewm.model.user.UserDtoNew;
 import ru.practicum.ewm.service.category.CategoryService;
+import ru.practicum.ewm.service.compilation.CompilationService;
 import ru.practicum.ewm.service.event.EventService;
 import ru.practicum.ewm.service.user.UserService;
 
@@ -30,7 +34,10 @@ import java.util.List;
 public class AdminController {
 
     private final UserService userService;
+
     private final CategoryService categoryService;
+
+    private final CompilationService compilationService;
 
     private final EventService eventService;
 
@@ -75,8 +82,8 @@ public class AdminController {
     }
 
     @PatchMapping("/categories/{catId}")
-    protected CategoryDtoFull update(@RequestBody @Valid CategoryDtoNew categoryDtoNew,
-                                     @PathVariable @Positive Long catId) {
+    protected CategoryDtoFull updateCategory(@RequestBody @Valid CategoryDtoNew categoryDtoNew,
+                                             @PathVariable @Positive Long catId) {
         log.info("Получен запрос на обновление категории с id {}", catId);
         return categoryService.update(categoryDtoNew, catId);
     }
@@ -94,5 +101,19 @@ public class AdminController {
         log.info("Получен запрос на поиск событий");
         Pageable pageable = PageRequest.of(from / size, size);
         return eventService.getEventsFullInfo(users, states, categories, rangeStart, rangeEnd, pageable);
+    }
+
+    @PatchMapping("/events/{eventId}")
+    protected EventDtoFull updateEvent(@RequestBody EventDtoUpdateByAdmin eventDtoUpdateByAdmin,
+                                       @PathVariable @Positive Long eventId) {
+        log.info("Получен запрос от администратора на обновление события с id {}", eventId);
+        return eventService.updateEventByIdByAdmin(eventDtoUpdateByAdmin, eventId);
+    }
+
+    @PostMapping("/compilations")
+    @ResponseStatus(HttpStatus.CREATED)
+    protected CompilationDtoFull createCompilation(@RequestBody @Valid CompilationDtoNew compilationDtoNew) {
+        log.info("Получен запрос на создание подборки событий");
+        return compilationService.createCompilation(compilationDtoNew);
     }
 }

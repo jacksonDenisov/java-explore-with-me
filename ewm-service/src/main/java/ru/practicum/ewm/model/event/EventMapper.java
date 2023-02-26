@@ -80,4 +80,30 @@ public class EventMapper {
         }
         return eventsDtoFull;
     }
+
+    public static EventDtoShort toEventDtoShort(Event event) {
+        EventDtoShort eventDtoShort = new EventDtoShort();
+        eventDtoShort.setId(event.getId());
+        eventDtoShort.setAnnotation(event.getAnnotation());
+        eventDtoShort.setCategory(new EventDtoShort.Category(
+                event.getCategory().getId(),
+                event.getCategory().getName()));
+        eventDtoShort.setConfirmedRequests(event.getConfirmedRequests());
+        eventDtoShort.setEventDate(event.getEventDate());
+        eventDtoShort.setInitiator(new EventDtoShort.User(
+                event.getInitiator().getId(),
+                event.getInitiator().getName()));
+        eventDtoShort.setPaid(event.getPaid());
+        eventDtoShort.setTitle(event.getTitle());
+        eventDtoShort.setViews(event.getViews());
+        return eventDtoShort;
+    }
+
+    public static List<EventDtoShort> toEventDtoShort(List<Event> events) {
+        List<EventDtoShort> eventDtoShorts = new ArrayList<>();
+        for (Event event : events) {
+            eventDtoShorts.add(toEventDtoShort(event));
+        }
+        return eventDtoShorts;
+    }
 }
