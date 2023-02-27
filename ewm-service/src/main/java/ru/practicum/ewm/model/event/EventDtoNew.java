@@ -31,7 +31,6 @@ public class EventDtoNew {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Future
     private LocalDateTime eventDate;
 
     @NotNull

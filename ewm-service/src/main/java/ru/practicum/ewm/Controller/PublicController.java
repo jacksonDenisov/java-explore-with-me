@@ -10,17 +10,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewm.client.StatsWebClient;
 import ru.practicum.ewm.model.category.CategoryDtoFull;
+import ru.practicum.ewm.model.compilation.CompilationDtoFull;
 import ru.practicum.ewm.model.event.EventDtoFull;
 import ru.practicum.ewm.model.event.EventDtoShort;
 import ru.practicum.ewm.model.event.EventSortOption;
 import ru.practicum.ewm.service.category.CategoryService;
+import ru.practicum.ewm.service.compilation.CompilationService;
 import ru.practicum.ewm.service.event.EventService;
 import ru.practicum.ewm.service.stats.StatsService;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
@@ -36,6 +36,8 @@ public class PublicController {
 
     private final StatsService statsService;
 
+    private final CompilationService compilationService;
+
     private final String APP = "ewm-service";
 
     @GetMapping("/categories")
@@ -49,7 +51,7 @@ public class PublicController {
     }
 
     @GetMapping("/categories/{catId}")
-    protected CategoryDtoFull findCategoryById(@PathVariable @Positive Long catId) {
+    protected CategoryDtoFull findCategoryById(@PathVariable Long catId) {
         log.info("Получен запрос на получение категории с id {}", catId);
         return categoryService.findById(catId);
     }
@@ -63,10 +65,10 @@ public class PublicController {
                                                       @RequestParam(required = false,
                                                               defaultValue = "false") Boolean onlyAvailable,
                                                       @RequestParam(required = false) EventSortOption sort,
-                                                      @RequestParam(required = false, value = "from", defaultValue = "0")
-                                                      @PositiveOrZero int from,
-                                                      @RequestParam(required = false, value = "size", defaultValue = "10")
-                                                      @PositiveOrZero int size,
+                                                      @RequestParam(required = false, value = "from",
+                                                              defaultValue = "0") @PositiveOrZero int from,
+                                                      @RequestParam(required = false, value = "size",
+                                                              defaultValue = "10") @PositiveOrZero int size,
                                                       HttpServletRequest httpServletRequest) {
         log.info("Получен запрос на получение списка событий");
         statsService.addHit(httpServletRequest, APP);
@@ -76,13 +78,29 @@ public class PublicController {
     }
 
     @GetMapping("/events/{id}")
-    protected EventDtoFull findPublicEventById(@PathVariable @Positive Long id,
+    protected EventDtoFull findPublicEventById(@PathVariable Long id,
                                                HttpServletRequest httpServletRequest) {
         log.info("Получен запрос на получение события с id {}", id);
         statsService.addHit(httpServletRequest, APP);
         return eventService.findPublicEventById(id);
     }
 
+    @GetMapping("/compilations")
+    protected List<CompilationDtoFull> getPublicCompilations(@RequestParam(required = false) Boolean pinned,
+                                                             @RequestParam(required = false, value = "from",
+                                                                     defaultValue = "0") @PositiveOrZero int from,
+                                                             @RequestParam(required = false, value = "size",
+                                                                     defaultValue = "10") @PositiveOrZero int size) {
+        log.info("Получен запрос на получение подборок событий");
+        Pageable pageable = PageRequest.of(from / size, size);
+        return compilationService.getPublicCompilations(pinned, pageable);
+    }
+
+    @GetMapping("/compilations/{compId}")
+    protected CompilationDtoFull getPublicCompilationById(@PathVariable Long compId) {
+        log.info("Получен запрос на получение подборки событий с id {}", compId);
+        return compilationService.getPublicCompilationById(compId);
+    }
 
     private Sort getSortType(EventSortOption sort) {
         if (sort != null) {

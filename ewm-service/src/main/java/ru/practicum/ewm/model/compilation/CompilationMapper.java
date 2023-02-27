@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import ru.practicum.ewm.model.event.Event;
 import ru.practicum.ewm.model.event.EventMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -25,5 +26,13 @@ public class CompilationMapper {
         compilationDtoFull.setPinned(compilation.getPinned());
         compilationDtoFull.setTitle(compilation.getTitle());
         return compilationDtoFull;
+    }
+
+    public static List<CompilationDtoFull> toCompilationDtoFull(List<Compilation> compilations) {
+        List<CompilationDtoFull> compilationsDtoFull = new ArrayList<>();
+        for (Compilation compilation : compilations) {
+            compilationsDtoFull.add(toCompilationDtoFull(compilation));
+        }
+        return compilationsDtoFull;
     }
 }

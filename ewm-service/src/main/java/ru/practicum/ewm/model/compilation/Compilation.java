@@ -2,7 +2,6 @@ package ru.practicum.ewm.model.compilation;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import ru.practicum.ewm.model.event.Event;
 
 import javax.persistence.*;
@@ -12,7 +11,6 @@ import java.util.List;
 @Table(name = "compilations")
 @Getter
 @Setter
-@ToString
 public class Compilation {
 
     @Id

@@ -5,7 +5,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.BusinessLogicConflictException;
@@ -28,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static ru.practicum.ewm.model.event.EventState.PUBLISHED;
 
 @Service
 @RequiredArgsConstructor
@@ -106,6 +107,11 @@ public class EventServiceImpl implements EventService {
                 throw new NotFoundException("Событие не доступно",
                         "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
                         new ArrayList<>(Collections.singletonList("NotFoundException")));
+            }
+            if (event.getState().equals(PUBLISHED)) {
+                throw new BusinessLogicConflictException("Не удалось обновить событие",
+                        "Нельзя изменять опубликованное событие",
+                        new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
             }
         } catch (NoSuchElementException e) {
             throw new NotFoundException("Не удалось найти событие",
@@ -241,7 +247,7 @@ public class EventServiceImpl implements EventService {
         if (eventDtoUpdateByAdmin.getEventDate() != null && event.getCreatedOn() != null) {
             if (eventDtoUpdateByAdmin.getEventDate().isBefore(event.getCreatedOn().plusHours(1L))) {
                 throw new BusinessLogicConflictException("Не удалось обновить событие",
-                        "Дата начала изменяемого события должна быть не ранее чем за час от даты публикации",
+                        "Дата начала изменяемого события должна быть не ранее, чем за час от даты публикации",
                         new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
             }
             event.setEventDate(eventDtoUpdateByAdmin.getEventDate());
@@ -265,7 +271,7 @@ public class EventServiceImpl implements EventService {
         if (eventDtoUpdateByAdmin.getStateAction() != null) {
             if (event.getState() == EventState.PENDING
                     && eventDtoUpdateByAdmin.getStateAction() == EventStateAction.PUBLISH_EVENT) {
-                event.setState(EventState.PUBLISHED);
+                event.setState(PUBLISHED);
             } else if (event.getState() == EventState.PENDING
                     && eventDtoUpdateByAdmin.getStateAction() == EventStateAction.REJECT_EVENT) {
                 event.setState(EventState.CANCELED);
@@ -291,7 +297,7 @@ public class EventServiceImpl implements EventService {
         QEvent qEvent = QEvent.event;
         List<BooleanExpression> predicates = new ArrayList<>();
 
-        BooleanExpression byPublishedState = qEvent.state.eq(EventState.PUBLISHED);
+        BooleanExpression byPublishedState = qEvent.state.eq(PUBLISHED);
         predicates.add(byPublishedState);
 
         if (text != null) {
@@ -343,7 +349,7 @@ public class EventServiceImpl implements EventService {
         Event event;
         try {
             event = eventRepository.findById(id).get();
-            if (event.getState() != EventState.PUBLISHED) {
+            if (event.getState() != PUBLISHED) {
                 throw new NoSuchElementException("Данное событие недоступно");
             }
         } catch (NoSuchElementException e) {

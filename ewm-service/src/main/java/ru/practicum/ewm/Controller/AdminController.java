@@ -11,6 +11,7 @@ import ru.practicum.ewm.model.category.CategoryDtoFull;
 import ru.practicum.ewm.model.category.CategoryDtoNew;
 import ru.practicum.ewm.model.compilation.CompilationDtoFull;
 import ru.practicum.ewm.model.compilation.CompilationDtoNew;
+import ru.practicum.ewm.model.compilation.CompilationDtoUpdate;
 import ru.practicum.ewm.model.event.EventDtoFull;
 import ru.practicum.ewm.model.event.EventDtoUpdateByAdmin;
 import ru.practicum.ewm.model.event.EventState;
@@ -22,7 +23,6 @@ import ru.practicum.ewm.service.event.EventService;
 import ru.practicum.ewm.service.user.UserService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class AdminController {
 
     @DeleteMapping("/users/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    protected void deleteUser(@PathVariable @Positive Long userId) {
+    protected void deleteUser(@PathVariable Long userId) {
         log.info("Получен запрос на удаление пользователя с id {}", userId);
         userService.delete(userId);
     }
@@ -76,15 +76,15 @@ public class AdminController {
 
     @DeleteMapping("/categories/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    protected void deleteCategory(@PathVariable @Positive Long catId) {
+    protected void deleteCategory(@PathVariable Long catId) {
         log.info("Получен запрос на удаление категории с id {}", catId);
         categoryService.delete(catId);
     }
 
     @PatchMapping("/categories/{catId}")
     protected CategoryDtoFull updateCategory(@RequestBody @Valid CategoryDtoNew categoryDtoNew,
-                                             @PathVariable @Positive Long catId) {
-        log.info("Получен запрос на обновление категории с id {}", catId);
+                                             @PathVariable Long catId) {
+        log.info("Получен запрос на обновление категории с id {}.", catId);
         return categoryService.update(categoryDtoNew, catId);
     }
 
@@ -105,7 +105,7 @@ public class AdminController {
 
     @PatchMapping("/events/{eventId}")
     protected EventDtoFull updateEvent(@RequestBody EventDtoUpdateByAdmin eventDtoUpdateByAdmin,
-                                       @PathVariable @Positive Long eventId) {
+                                       @PathVariable Long eventId) {
         log.info("Получен запрос от администратора на обновление события с id {}", eventId);
         return eventService.updateEventByIdByAdmin(eventDtoUpdateByAdmin, eventId);
     }
@@ -115,5 +115,19 @@ public class AdminController {
     protected CompilationDtoFull createCompilation(@RequestBody @Valid CompilationDtoNew compilationDtoNew) {
         log.info("Получен запрос на создание подборки событий");
         return compilationService.createCompilation(compilationDtoNew);
+    }
+
+    @DeleteMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    protected void deleteCompilationById(@PathVariable Long compId) {
+        log.info("Получен запрос на удаление подборки событий с id {}", compId);
+        compilationService.deleteCompilationById(compId);
+    }
+
+    @PatchMapping("/compilations/{compId}")
+    protected CompilationDtoFull updateCompilationById(@RequestBody CompilationDtoUpdate compilationDtoUpdate,
+                                                       @PathVariable Long compId) {
+        log.info("Получен запрос на обновление подборки событий с id {}", compId);
+        return compilationService.updateCompilationById(compilationDtoUpdate, compId);
     }
 }

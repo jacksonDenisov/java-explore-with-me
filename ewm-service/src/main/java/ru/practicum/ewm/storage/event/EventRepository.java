@@ -1,6 +1,5 @@
 package ru.practicum.ewm.storage.event;
 
-import com.querydsl.core.types.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,5 +12,5 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
 
     Page<Event> findAllByInitiatorId(Long initiatorId, Pageable pageable);
 
-    List<Event> findAll(Predicate predicate);
+    List<Event> findAllByIdIn(List<Long> ids);
 }

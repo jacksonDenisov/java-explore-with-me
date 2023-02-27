@@ -1,7 +1,6 @@
 package ru.practicum.ewm.service.category;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
@@ -47,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.deleteById(id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Не удалось удалить категорию",
-                    "Такого категории в системе не существует",
+                    "Такой категории в системе не существует",
                     new ArrayList<>(Collections.singletonList(e.getMessage())));
         }
     }
@@ -62,7 +61,7 @@ public class CategoryServiceImpl implements CategoryService {
                 Category categoryChanged = categoryRepository.save(category);
                 return CategoryMapper.toCategoryDtoFull(categoryChanged);
             } else {
-                throw new DataBaseConflictException("Не удалось обновить новую категорию",
+                throw new DataBaseConflictException("Не удалось обновить категорию",
                         "Нарушение целостности данных - указанное имя категории уже задействовано",
                         new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
             }

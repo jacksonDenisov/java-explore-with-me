@@ -17,6 +17,4 @@ public class ErrorHandler {
     public Map<String, String> handleValidationException(final ValidationException e) {
         return Map.of("error", e.getMessage());
     }
-
-
 }

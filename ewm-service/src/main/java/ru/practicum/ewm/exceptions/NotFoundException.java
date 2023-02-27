@@ -10,7 +10,6 @@ public class NotFoundException extends RuntimeException {
     private final String reason;
     private final List<String> errors;
 
-
     public NotFoundException(final String message, final String reason, final List<String> errors) {
         super(message);
         this.reason = reason;

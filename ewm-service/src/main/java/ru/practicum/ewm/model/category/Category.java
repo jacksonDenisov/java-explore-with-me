@@ -2,7 +2,6 @@ package ru.practicum.ewm.model.category;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.validator.constraints.Length;
 import ru.practicum.ewm.model.event.Event;
 
@@ -13,7 +12,6 @@ import java.util.List;
 @Table(name = "categories")
 @Getter
 @Setter
-@ToString
 public class Category {
 
     @Id
@@ -23,6 +21,6 @@ public class Category {
     @Length(max = 100)
     private String name;
 
-    @OneToMany (mappedBy = "category")
+    @OneToMany(mappedBy = "category")
     private List<Event> events;
 }

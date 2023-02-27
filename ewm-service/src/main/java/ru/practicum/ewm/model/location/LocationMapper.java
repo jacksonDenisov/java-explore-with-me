@@ -13,12 +13,4 @@ public class LocationMapper {
         location.setLat(locationNew.getLat());
         return location;
     }
-
-    public static LocationDtoFull toLocationDtoFull(Location location) {
-        LocationDtoFull locationDtoFull = new LocationDtoFull();
-        locationDtoFull.setId(location.getId());
-        locationDtoFull.setLon(location.getLon());
-        locationDtoFull.setLat(location.getLat());
-        return locationDtoFull;
-    }
 }

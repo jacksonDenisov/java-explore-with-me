@@ -2,7 +2,6 @@ package ru.practicum.ewm.model.event;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.lang.Nullable;
 import ru.practicum.ewm.model.category.Category;
 import ru.practicum.ewm.model.location.Location;
@@ -15,7 +14,6 @@ import java.time.LocalDateTime;
 @Table(name = "events")
 @Getter
 @Setter
-@ToString
 public class Event {
 
     @Id
