@@ -44,7 +44,7 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
                     "Пользователя или события с запрошенным id в системе не существует",
                     new ArrayList<>(Collections.singletonList(e.getMessage())));
         }
-        if (event.getInitiator().getId() == userId || !event.getState().equals(PUBLISHED)) {
+        if (event.getInitiator().getId().equals(userId) || !event.getState().equals(PUBLISHED)) {
             throw new BusinessLogicConflictException("Не удалось создать запрос на участие в событии",
                     "Инициатор события не может добавить запрос на участие в своём событии." +
                             " Нельзя участвовать в неопубликованном событии",

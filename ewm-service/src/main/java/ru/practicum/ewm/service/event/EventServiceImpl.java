@@ -77,7 +77,7 @@ public class EventServiceImpl implements EventService {
     public EventDtoFull findEventByIdForInitiator(Long userId, Long eventId) {
         try {
             Event event = eventRepository.findById(eventId).get();
-            if (event.getInitiator().getId() != userId) {
+            if (!event.getInitiator().getId().equals(userId)) {
                 throw new NotFoundException("Событие не доступно",
                         "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
                         new ArrayList<>(Collections.singletonList("NotFoundException")));
@@ -103,7 +103,7 @@ public class EventServiceImpl implements EventService {
         Event event;
         try {
             event = eventRepository.findById(eventId).get();
-            if (event.getInitiator().getId() != userId) {
+            if (!event.getInitiator().getId().equals(userId)) {
                 throw new NotFoundException("Событие не доступно",
                         "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
                         new ArrayList<>(Collections.singletonList("NotFoundException")));
