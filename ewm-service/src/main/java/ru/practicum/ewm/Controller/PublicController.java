@@ -38,7 +38,7 @@ public class PublicController {
 
     private final CompilationService compilationService;
 
-    private final String APP = "ewm-service";
+    private static final String APP = "ewm-service";
 
     @GetMapping("/categories")
     protected List<CategoryDtoFull> findAllCategories(@RequestParam(required = false, defaultValue = "0")
