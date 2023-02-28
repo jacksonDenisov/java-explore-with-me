@@ -1,4 +1,4 @@
-package ru.practicum.ewm.Controller;
+package ru.practicum.ewm.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import ru.practicum.ewm.Controller.AdminController;
-import ru.practicum.ewm.Controller.PrivateController;
-import ru.practicum.ewm.Controller.PublicController;
+import ru.practicum.ewm.controller.AdminController;
+import ru.practicum.ewm.controller.PrivateController;
+import ru.practicum.ewm.controller.PublicController;
 
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;

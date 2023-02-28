@@ -3,7 +3,6 @@ package ru.practicum.ewm.service.event;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static ru.practicum.ewm.model.event.EventState.PUBLISHED;
 
@@ -45,29 +43,20 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventDtoFull create(EventDtoNew eventDtoNew, Long userId) {
-        User initiator;
-        Category category;
-        Location location;
-        try {
-            initiator = userRepository.findById(userId).get();
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти пользователя",
-                    "Пользователя с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
-        }
-        try {
-            category = categoryRepository.findById(eventDtoNew.getCategory()).get();
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти категорию",
-                    "Категория с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
-        }
+        User initiator = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти пользователя",
+                        "Пользователя с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
+        Category category = categoryRepository.findById(eventDtoNew.getCategory())
+                .orElseThrow(() -> new NotFoundException("Не удалось найти категорию",
+                        "Категория с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
         if (eventDtoNew.getEventDate().isBefore(LocalDateTime.now().plusHours(2L))) {
             throw new BusinessLogicConflictException("Не удалось создать событие",
                     "Дата и время, на которые намечено событие не может быть раньше, чем через два часа от текущего момента",
                     new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
         }
-        location = locationRepository.save(LocationMapper.toLocationNew(eventDtoNew.getLocation()));
+        Location location = locationRepository.save(LocationMapper.toLocationNew(eventDtoNew.getLocation()));
         Event event = eventRepository.save(EventMapper.toNewEvent(eventDtoNew, initiator, location, category));
         return EventMapper.toEventDtoFull(event);
     }
@@ -75,61 +64,53 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventDtoFull findEventByIdForInitiator(Long userId, Long eventId) {
-        try {
-            Event event = eventRepository.findById(eventId).get();
-            if (!event.getInitiator().getId().equals(userId)) {
-                throw new NotFoundException("Событие не доступно",
-                        "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
-                        new ArrayList<>(Collections.singletonList("NotFoundException")));
-            }
-            return EventMapper.toEventDtoFull(event);
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти событие",
-                    "События с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти событие",
+                        "События с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
+        if (!event.getInitiator().getId().equals(userId)) {
+            throw new NotFoundException("Событие не доступно",
+                    "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
+                    new ArrayList<>(Collections.singletonList("NotFoundException")));
         }
+        return EventMapper.toEventDtoFull(event);
+
+
     }
 
     @Override
     @Transactional
     public List<EventDtoFull> findAllEventsForInitiator(Long userId, Pageable pageable) {
-        Page<Event> eventPage = eventRepository.findAllByInitiatorId(userId, pageable);
-        return EventMapper.toEventDtoFull(eventPage.toList());
+        return EventMapper.toEventDtoFull(
+                eventRepository.findAllByInitiatorId(userId, pageable).toList());
     }
 
     @Override
     @Transactional
     public EventDtoFull updateEventByIdByInitiator(EventDtoUpdateByUser eventDtoUpdateByUser, Long userId, Long eventId) {
-        Event event;
-        try {
-            event = eventRepository.findById(eventId).get();
-            if (!event.getInitiator().getId().equals(userId)) {
-                throw new NotFoundException("Событие не доступно",
-                        "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
-                        new ArrayList<>(Collections.singletonList("NotFoundException")));
-            }
-            if (event.getState().equals(PUBLISHED)) {
-                throw new BusinessLogicConflictException("Не удалось обновить событие",
-                        "Нельзя изменять опубликованное событие",
-                        new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
-            }
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти событие",
-                    "События с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти событие",
+                        "События с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
+        if (!event.getInitiator().getId().equals(userId)) {
+            throw new NotFoundException("Событие не доступно",
+                    "У данного пользователя нет доступа к этому событию, так как он не является его инициатором",
+                    new ArrayList<>(Collections.singletonList("NotFoundException")));
+        }
+        if (event.getState().equals(PUBLISHED)) {
+            throw new BusinessLogicConflictException("Не удалось обновить событие",
+                    "Нельзя изменять опубликованное событие",
+                    new ArrayList<>(Collections.singletonList("BusinessLogicConflictException")));
         }
         if (eventDtoUpdateByUser.getAnnotation() != null) {
             event.setAnnotation(eventDtoUpdateByUser.getAnnotation());
         }
         if (eventDtoUpdateByUser.getCategory() != null) {
-            try {
-                Category category = categoryRepository.findById(eventDtoUpdateByUser.getCategory()).get();
-                event.setCategory(category);
-            } catch (NoSuchElementException e) {
-                throw new NotFoundException("Не удалось найти категорию",
-                        "Категория с запрошенным id в системе не существует",
-                        new ArrayList<>(Collections.singletonList(e.getMessage())));
-            }
+            Category category = categoryRepository.findById(eventDtoUpdateByUser.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Не удалось найти категорию",
+                            "Категория с запрошенным id в системе не существует",
+                            new ArrayList<>(Collections.singletonList("NotFoundException"))));
+            event.setCategory(category);
         }
         if (eventDtoUpdateByUser.getDescription() != null) {
             event.setDescription(eventDtoUpdateByUser.getDescription());
@@ -174,8 +155,7 @@ public class EventServiceImpl implements EventService {
         if (eventDtoUpdateByUser.getTitle() != null) {
             event.setTitle(eventDtoUpdateByUser.getTitle());
         }
-        Event updatedEvent = eventRepository.save(event);
-        return EventMapper.toEventDtoFull(updatedEvent);
+        return EventMapper.toEventDtoFull(eventRepository.save(event));
     }
 
     @Override
@@ -213,33 +193,26 @@ public class EventServiceImpl implements EventService {
         for (BooleanExpression predicate : predicates) {
             finalPredicate = finalPredicate.and(predicate);
         }
-        Page<Event> eventPage = eventRepository.findAll(finalPredicate, pageable);
-        return EventMapper.toEventDtoFull(eventPage.toList());
+        return EventMapper.toEventDtoFull(
+                eventRepository.findAll(finalPredicate, pageable).toList());
     }
 
     @Override
     @Transactional
     public EventDtoFull updateEventByIdByAdmin(EventDtoUpdateByAdmin eventDtoUpdateByAdmin, Long eventId) {
-        Event event;
-        try {
-            event = eventRepository.findById(eventId).get();
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти событие",
-                    "События с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
-        }
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти событие",
+                        "События с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
         if (eventDtoUpdateByAdmin.getAnnotation() != null) {
             event.setAnnotation(eventDtoUpdateByAdmin.getAnnotation());
         }
         if (eventDtoUpdateByAdmin.getCategory() != null) {
-            try {
-                Category category = categoryRepository.findById(eventDtoUpdateByAdmin.getCategory()).get();
-                event.setCategory(category);
-            } catch (NoSuchElementException e) {
-                throw new NotFoundException("Не удалось найти категорию",
-                        "Категория с запрошенным id в системе не существует",
-                        new ArrayList<>(Collections.singletonList(e.getMessage())));
-            }
+            Category category = categoryRepository.findById(eventDtoUpdateByAdmin.getCategory())
+                    .orElseThrow(() -> new NotFoundException("Не удалось найти категорию",
+                            "Категория с запрошенным id в системе не существует",
+                            new ArrayList<>(Collections.singletonList("NotFoundException"))));
+            event.setCategory(category);
         }
         if (eventDtoUpdateByAdmin.getDescription() != null) {
             event.setDescription(eventDtoUpdateByAdmin.getDescription());
@@ -285,8 +258,7 @@ public class EventServiceImpl implements EventService {
         if (eventDtoUpdateByAdmin.getTitle() != null) {
             event.setTitle(eventDtoUpdateByAdmin.getTitle());
         }
-        Event updatedEvent = eventRepository.save(event);
-        return EventMapper.toEventDtoFull(updatedEvent);
+        return EventMapper.toEventDtoFull(eventRepository.save(event));
     }
 
     @Override
@@ -332,33 +304,28 @@ public class EventServiceImpl implements EventService {
             BooleanExpression byOnlyAvailable = qEvent.participantLimit.gt(qEvent.confirmedRequests);
             predicates.add(byOnlyAvailable);
         }
-
         BooleanExpression finalPredicate = Expressions.asBoolean(true).isTrue();
         for (BooleanExpression predicate : predicates) {
             finalPredicate = finalPredicate.and(predicate);
         }
-
-        Page<Event> eventPage = eventRepository.findAll(finalPredicate, pageable);
-        System.out.println("test");
-        return EventMapper.toEventDtoShort(eventPage.toList());
+        return EventMapper.toEventDtoShort(
+                eventRepository.findAll(finalPredicate, pageable).toList());
     }
 
     @Override
     @Transactional
     public EventDtoFull findPublicEventById(Long id) {
-        Event event;
-        try {
-            event = eventRepository.findById(id).get();
-            if (event.getState() != PUBLISHED) {
-                throw new NoSuchElementException("Данное событие недоступно");
-            }
-        } catch (NoSuchElementException e) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти событие",
+                        "События с запрошенным id в системе не существует или оно недоступно",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
+        if (event.getState() != PUBLISHED) {
             throw new NotFoundException("Не удалось найти событие",
-                    "События с запрошенным id в системе не существует или оно недоступно",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+                    "События с запрошенным id недоступно",
+                    new ArrayList<>(Collections.singletonList("NotFoundException")));
         }
         event.setViews(event.getViews() + 1);
-        eventRepository.save(event);
-        return EventMapper.toEventDtoFull(event);
+        return EventMapper.toEventDtoFull(
+                eventRepository.save(event));
     }
 }

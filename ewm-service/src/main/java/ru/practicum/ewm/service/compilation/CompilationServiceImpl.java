@@ -15,10 +15,7 @@ import ru.practicum.ewm.model.event.Event;
 import ru.practicum.ewm.storage.compilation.CompilationRepository;
 import ru.practicum.ewm.storage.event.EventRepository;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -39,9 +36,8 @@ public class CompilationServiceImpl implements CompilationService {
             compilationDtoNew.setPinned(false);
         }
         try {
-            Compilation compilation = compilationRepository.save(
-                    CompilationMapper.toCompilationNew(compilationDtoNew, events));
-            return CompilationMapper.toCompilationDtoFull(compilation);
+            return CompilationMapper.toCompilationDtoFull(compilationRepository.save(
+                    CompilationMapper.toCompilationNew(compilationDtoNew, events)));
         } catch (DataIntegrityViolationException e) {
             throw new DataBaseConflictException("Не удалось добавить новую подборку событий",
                     "Нарушение целостности данных",
@@ -64,29 +60,25 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public CompilationDtoFull updateCompilationById(CompilationDtoUpdate compilationDtoUpdate, Long compId) {
-        try {
-            Compilation compilation = compilationRepository.findById(compId).get();
-            if (compilationDtoUpdate.getTitle() != null) {
-                if (compilation.getTitle().equals(compilationDtoUpdate.getTitle())) {
-                    throw new DataBaseConflictException("Не удалось обновить подборку событий",
-                            "Нарушение целостности данных - указанный заголовок уже задействован",
-                            new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
-                }
-                compilation.setTitle(compilationDtoUpdate.getTitle());
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Не удалось обновить подборку событий",
+                        "Вероятно, указан несуществующий id",
+                        new ArrayList<>(Collections.singletonList("NotFoundException"))));
+        if (compilationDtoUpdate.getTitle() != null) {
+            if (compilation.getTitle().equals(compilationDtoUpdate.getTitle())) {
+                throw new DataBaseConflictException("Не удалось обновить подборку событий",
+                        "Нарушение целостности данных - указанный заголовок уже задействован",
+                        new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
             }
-            if (compilationDtoUpdate.getPinned() != null) {
-                compilation.setPinned(compilationDtoUpdate.getPinned());
-            }
-            if (compilationDtoUpdate.getPinned() != null && !compilationDtoUpdate.getEvents().isEmpty()) {
-                compilation.setEvents(eventRepository.findAllByIdIn(compilationDtoUpdate.getEvents()));
-            }
-            Compilation compilationChanged = compilationRepository.save(compilation);
-            return CompilationMapper.toCompilationDtoFull(compilationChanged);
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось обновить подборку событий",
-                    "Вероятно, указан несуществующий id",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+            compilation.setTitle(compilationDtoUpdate.getTitle());
         }
+        if (compilationDtoUpdate.getPinned() != null) {
+            compilation.setPinned(compilationDtoUpdate.getPinned());
+        }
+        if (compilationDtoUpdate.getPinned() != null && !compilationDtoUpdate.getEvents().isEmpty()) {
+            compilation.setEvents(eventRepository.findAllByIdIn(compilationDtoUpdate.getEvents()));
+        }
+        return CompilationMapper.toCompilationDtoFull(compilationRepository.save(compilation));
     }
 
     @Override
@@ -111,13 +103,9 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     @Transactional
     public CompilationDtoFull getPublicCompilationById(Long compId) {
-        try {
-            Compilation compilation = compilationRepository.findById(compId).get();
-            return CompilationMapper.toCompilationDtoFull(compilation);
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти подборку событий",
-                    "Подборка с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
-        }
+        return CompilationMapper.toCompilationDtoFull(compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти подборку событий",
+                        "Подборка с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException")))));
     }
 }

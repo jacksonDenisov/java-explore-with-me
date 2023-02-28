@@ -3,7 +3,6 @@ package ru.practicum.ewm.service.category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +17,6 @@ import ru.practicum.ewm.storage.category.CategoryRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +28,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDtoFull create(CategoryDtoNew categoryDtoNew) {
         try {
-            Category category = categoryRepository.save(CategoryMapper.toCategory(categoryDtoNew));
-            return CategoryMapper.toCategoryDtoFull(category);
+            return CategoryMapper.toCategoryDtoFull(
+                    categoryRepository.save(CategoryMapper.toCategory(categoryDtoNew)));
         } catch (DataIntegrityViolationException e) {
             throw new DataBaseConflictException("Не удалось добавить новую категорию",
                     "Нарушение целостности данных",
@@ -54,41 +52,31 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDtoFull update(CategoryDtoNew categoryDtoNew, Long id) {
-        try {
-            Category category = categoryRepository.findById(id).get();
-            if (!category.getName().equals(categoryDtoNew.getName())) {
-                category.setName(categoryDtoNew.getName());
-                Category categoryChanged = categoryRepository.save(category);
-                return CategoryMapper.toCategoryDtoFull(categoryChanged);
-            } else {
-                throw new DataBaseConflictException("Не удалось обновить категорию",
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new DataBaseConflictException("Не удалось обновить категорию",
                         "Нарушение целостности данных - указанное имя категории уже задействовано",
-                        new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
-            }
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти категорию",
-                    "Вероятно, указан несуществующий id",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
+                        new ArrayList<>(Collections.singletonList("DataBaseConflictException"))));
+        if (category.getName().equals(categoryDtoNew.getName())) {
+            throw new DataBaseConflictException("Не удалось обновить категорию",
+                    "Нарушение целостности данных - указанное имя категории уже задействовано",
+                    new ArrayList<>(Collections.singletonList("DataBaseConflictException")));
         }
+        category.setName(categoryDtoNew.getName());
+        return CategoryMapper.toCategoryDtoFull(categoryRepository.save(category));
     }
 
     @Override
     @Transactional
     public List<CategoryDtoFull> findAll(Pageable pageable) {
-        Page<Category> categoryPage = categoryRepository.findAll(pageable);
-        return CategoryMapper.toCategoryDtoFull(categoryPage.toList());
+        return CategoryMapper.toCategoryDtoFull(categoryRepository.findAll(pageable).toList());
     }
 
     @Override
     @Transactional
     public CategoryDtoFull findById(Long id) {
-        try {
-            Category category = categoryRepository.findById(id).get();
-            return CategoryMapper.toCategoryDtoFull(category);
-        } catch (NoSuchElementException e) {
-            throw new NotFoundException("Не удалось найти категорию",
-                    "Категории с запрошенным id в системе не существует",
-                    new ArrayList<>(Collections.singletonList(e.getMessage())));
-        }
+        return CategoryMapper.toCategoryDtoFull(categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Не удалось найти категорию",
+                        "Категории с запрошенным id в системе не существует",
+                        new ArrayList<>(Collections.singletonList("NotFoundException")))));
     }
 }

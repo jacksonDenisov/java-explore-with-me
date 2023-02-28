@@ -26,6 +26,7 @@ public class ParticipationRequest {
     @JoinColumn(name = "requester_id")
     private User requester;
 
+    @Column(length = 30)
     @Enumerated(EnumType.STRING)
     private ParticipationRequestState status;
 

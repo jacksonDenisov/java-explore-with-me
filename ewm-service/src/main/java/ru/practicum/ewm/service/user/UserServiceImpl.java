@@ -3,13 +3,11 @@ package ru.practicum.ewm.service.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.exceptions.DataBaseConflictException;
 import ru.practicum.ewm.exceptions.NotFoundException;
-import ru.practicum.ewm.model.user.User;
 import ru.practicum.ewm.model.user.UserDto;
 import ru.practicum.ewm.model.user.UserDtoNew;
 import ru.practicum.ewm.model.user.UserMapper;
@@ -29,8 +27,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto create(UserDtoNew userDtoNew) {
         try {
-            User user = userRepository.save(UserMapper.toUser(userDtoNew));
-            return UserMapper.toUserDtoFull(user);
+            return UserMapper.toUserDtoFull(
+                    userRepository.save(UserMapper.toUser(userDtoNew)));
         } catch (DataIntegrityViolationException e) {
             throw new DataBaseConflictException("Не удалось добавить нового пользователя",
                     "Нарушение целостности данных",
@@ -53,7 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public List<UserDto> findAllByIds(List<Long> ids, Pageable pageable) {
-        Page<User> usersPage = userRepository.findAllByIdIn(ids, pageable);
-        return UserMapper.toUserDtoFull(usersPage.toList());
+        return UserMapper.toUserDtoFull(
+                userRepository.findAllByIdIn(ids, pageable).toList());
     }
 }

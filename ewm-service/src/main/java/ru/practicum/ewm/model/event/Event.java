@@ -20,12 +20,14 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 2000)
     private String annotation;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @Column(length = 7000)
     private String description;
 
     @Column(name = "event_date")
@@ -43,6 +45,7 @@ public class Event {
     @Column(name = "request_moderation")
     private Boolean requestModeration;
 
+    @Column(length = 120)
     private String title;
 
     @Column(name = "confirmed_requests")
@@ -59,6 +62,7 @@ public class Event {
     @Column(name = "published_on")
     private LocalDateTime publishedOn;
 
+    @Column(length = 30)
     @Enumerated(EnumType.STRING)
     private EventState state;
 

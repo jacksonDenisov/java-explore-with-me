@@ -25,5 +25,6 @@ public class Compilation {
 
     private Boolean pinned;
 
+    @Column(length = 120)
     private String title;
 }
