@@ -109,6 +109,10 @@ public class PublicController {
                     return Sort.by("views").ascending();
                 case EVENT_DATE:
                     return Sort.by("eventDate").ascending();
+                case RATING_ASC:
+                    return Sort.by(("rating")).ascending();
+                case RATING_DESC:
+                    return Sort.by(("rating")).descending();
             }
         }
         return Sort.unsorted();
