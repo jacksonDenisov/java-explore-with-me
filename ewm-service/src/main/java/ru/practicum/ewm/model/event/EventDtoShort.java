@@ -35,6 +35,8 @@ public class EventDtoShort {
 
     private Long views;
 
+    private Double rating;
+
     @Getter
     @Setter
     @AllArgsConstructor
