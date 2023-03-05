@@ -18,3 +18,4 @@
 ### Рейтинги событий  
 * [Описание](feature_rating_events.md)
 * [Коллекция для проверки](postman/feature.json)
+* [Ссылка на pull request с фичей](https://github.com/jacksonDenisov/java-explore-with-me/pull/5)
