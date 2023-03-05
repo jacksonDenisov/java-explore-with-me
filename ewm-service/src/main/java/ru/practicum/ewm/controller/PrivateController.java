@@ -7,12 +7,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.model.estimations.EstimationDtoFull;
+import ru.practicum.ewm.model.estimations.EstimationDto;
 import ru.practicum.ewm.model.event.EventDtoFull;
 import ru.practicum.ewm.model.event.EventDtoNew;
 import ru.practicum.ewm.model.event.EventDtoUpdateByUser;
 import ru.practicum.ewm.model.participation_request.ParticipationRequestDto;
 import ru.practicum.ewm.model.participation_request.ParticipationRequestDtoStatusUpdate;
 import ru.practicum.ewm.model.participation_request.ParticipationRequestDtoUpdated;
+import ru.practicum.ewm.model.user.UserDtoWithRating;
+import ru.practicum.ewm.service.estimations.EstimationService;
 import ru.practicum.ewm.service.event.EventService;
 import ru.practicum.ewm.service.participation_request.ParticipationRequestService;
 
@@ -30,6 +34,8 @@ public class PrivateController {
     private final EventService eventService;
 
     private final ParticipationRequestService participationRequestService;
+
+    private final EstimationService estimationService;
 
     @PostMapping("/events")
     @ResponseStatus(HttpStatus.CREATED)
@@ -102,5 +108,26 @@ public class PrivateController {
         log.info("Получен запрос на изменение статуса заявок на участие в событии с id {}", eventId);
         return participationRequestService.updateParticipationRequestStatusByEventInitiator(
                 userId, eventId, participationRequestDtoStatusUpdate);
+    }
+
+    @PostMapping("/events/{eventId}/estimation")
+    protected EstimationDtoFull estimateEvent(@PathVariable Long userId, @PathVariable Long eventId,
+                                              @RequestBody @Valid EstimationDto estimationDto) {
+        log.info("Получен запрос на {} события", estimationDto.getEstimationType());
+        return estimationService.estimateEvent(userId, eventId, estimationDto);
+    }
+
+    @PatchMapping("/events/{eventId}/estimation")
+    protected EstimationDtoFull updateEventEstimation(@PathVariable Long userId, @PathVariable Long eventId,
+                                                      @RequestBody @Valid EstimationDto estimationDto) {
+        log.info("Получен запрос на обновление оценки события. Новая оценка - {}", estimationDto.getEstimationType());
+        return estimationService.updateEventEstimation(userId, eventId, estimationDto);
+    }
+
+    @GetMapping("/org_rating/{initiatorId}")
+    protected UserDtoWithRating getInitiatorRatingInfo(@PathVariable Long userId, @PathVariable Long initiatorId) {
+        log.info("Получен запрос от пользователя с id {} на получение информации об организаторе события с id {}",
+                userId, initiatorId);
+        return estimationService.getInitiatorRatingInfo(initiatorId);
     }
 }

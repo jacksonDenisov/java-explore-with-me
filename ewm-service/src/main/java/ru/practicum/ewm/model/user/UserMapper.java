@@ -24,6 +24,13 @@ public class UserMapper {
         return userDtoFull;
     }
 
+    public static UserDtoWithRating toUserDtoWithRating(User user, Double rating){
+        UserDtoWithRating userDtoWithRating = new UserDtoWithRating();
+        userDtoWithRating.setName(user.getName());
+        userDtoWithRating.setRating(rating);
+        return userDtoWithRating;
+    }
+
     public static List<UserDto> toUserDtoFull(List<User> users) {
         List<UserDto> usersDtoFull = new ArrayList<>();
         for (User user : users) {

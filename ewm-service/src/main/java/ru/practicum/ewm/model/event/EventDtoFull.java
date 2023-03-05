@@ -55,6 +55,8 @@ public class EventDtoFull {
 
     private Long views;
 
+    private Double rating;
+
     @Getter
     @Setter
     @AllArgsConstructor

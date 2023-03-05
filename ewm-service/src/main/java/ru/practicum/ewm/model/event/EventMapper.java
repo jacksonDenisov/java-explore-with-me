@@ -70,6 +70,9 @@ public class EventMapper {
         eventDtoFull.setState(event.getState());
         eventDtoFull.setTitle(event.getTitle());
         eventDtoFull.setViews(event.getViews());
+        if (event.getRating() != null) {
+            eventDtoFull.setRating(event.getRating());
+        }
         return eventDtoFull;
     }
 
@@ -96,6 +99,9 @@ public class EventMapper {
         eventDtoShort.setPaid(event.getPaid());
         eventDtoShort.setTitle(event.getTitle());
         eventDtoShort.setViews(event.getViews());
+        if (event.getRating() != null) {
+            eventDtoShort.setRating(event.getRating());
+        }
         return eventDtoShort;
     }
 

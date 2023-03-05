@@ -67,4 +67,7 @@ public class Event {
     private EventState state;
 
     private Long views;
+
+    @Nullable
+    private Double rating;
 }
