@@ -9,7 +9,7 @@ public class EstimationDtoFull {
 
     private Long userId;
 
-    private Long event_id;
+    private Long eventId;
 
     private EstimationType estimationType;
 }

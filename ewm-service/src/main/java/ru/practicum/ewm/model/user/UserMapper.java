@@ -24,7 +24,7 @@ public class UserMapper {
         return userDtoFull;
     }
 
-    public static UserDtoWithRating toUserDtoWithRating(User user, Double rating){
+    public static UserDtoWithRating toUserDtoWithRating(User user, Double rating) {
         UserDtoWithRating userDtoWithRating = new UserDtoWithRating();
         userDtoWithRating.setName(user.getName());
         userDtoWithRating.setRating(rating);

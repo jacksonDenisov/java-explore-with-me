@@ -20,7 +20,7 @@ public class EstimationMapper {
         EstimationDtoFull estimationDtoFull = new EstimationDtoFull();
         estimationDtoFull.setId(estimation.getId());
         estimationDtoFull.setUserId(estimation.getUser().getId());
-        estimationDtoFull.setEvent_id(estimation.getEvent().getId());
+        estimationDtoFull.setEventId(estimation.getEvent().getId());
         estimationDtoFull.setEstimationType(estimation.getEstimationType());
         return estimationDtoFull;
     }
