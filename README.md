@@ -17,4 +17,4 @@
 
 ### Рейтинги событий  
 * [Описание](feature_rating_events.md)
-* [Коллекция для проверки](Postman/feature.json)
+* [Коллекция для проверки](postman/feature.json)
